@@ -26,6 +26,7 @@ public:
 
     DataServer(const std::string &name);
     void operator()();
+    void startHeartbeat();
     double size()const{return size_;}
     std::string get_name()const;
 };
