@@ -96,11 +96,6 @@ void DataServer::locate(){
         bufSize = 0;
 }
 
-void DataServer::omit(){
-    
-
-}
-
 std::string DataServer::get_name()const{
     return name_;
 }
