@@ -194,8 +194,23 @@ void NameServer::operator()(){
         is.close();
     }
 }
-//处理接收到的心跳信号
+//接收心跳信号
 void NameServer::receiveHeartbeat(const ServerID& serverID,bool status){
     std::unique_lock<std::mutex> lock(mtx_);
     heartbeatStatus_[serverID.getName()]=status;
+}
+
+//心跳处理函数，更新dataserver的心跳状态
+void NameServer::heartbeatProcessing(){
+    while(true){
+        std::unique_lock<std::mutex> lock(mtx_);
+        for(const auto& server : dataServers_){
+            std::string serverName=server->getName();
+            if(heartbeatStatus_.count(serverName)==0){
+                heartbeatStatus_[serverName]=false;
+            }
+        }
+        lock.unlock();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 }
