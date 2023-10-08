@@ -95,6 +95,16 @@ void DataServer::locate(){
         bufSize = 0;
 }
 
+void DataServer::sendHeartbeat(NameServer* nameServer){
+    while(true){
+        //发送心跳信号给nameserver
+        nameServer->receiveHeartbeat(ServerID(name_),true);
+        //每隔10s发送一次
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+    }
+
+}
+
 std::string DataServer::get_name()const{
     return name_;
 }
