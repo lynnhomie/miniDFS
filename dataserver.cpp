@@ -29,8 +29,6 @@ void DataServer::operator()(){
             locate();
         else if(cmd == "fetch")
             fetch();
-        else if(cmd == "omit")
-            omit();
         this->finish = true;
         lk.unlock();
         cv.notify_all();
