@@ -194,3 +194,8 @@ void NameServer::operator()(){
         is.close();
     }
 }
+//处理接收到的心跳信号
+void NameServer::receiveHeartbeat(const ServerID& serverID,bool status){
+    std::unique_lock<std::mutex> lock(mtx_);
+    heartbeatStatus_[serverID.getName()]=status;
+}
