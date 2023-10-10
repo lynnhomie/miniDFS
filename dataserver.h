@@ -7,6 +7,9 @@
 
 extern int chunkSize;
 
+class NameServer{
+};
+
 class DataServer{
 private:
     std::string name_;
