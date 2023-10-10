@@ -27,7 +27,6 @@ public:
     int fid, bufSize, offset;
     char* buf;
     bool finish;
-    NameServer* nameServer;
 
     DataServer(const std::string &name);
     void operator()();
