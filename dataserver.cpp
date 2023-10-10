@@ -100,7 +100,9 @@ void DataServer::locate(){
 
 void DataServer::sendHeartbeat(){
     while(true){
-    
+
+        //每隔10秒发送一次心跳信号
+        std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 
 }
