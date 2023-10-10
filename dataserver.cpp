@@ -14,7 +14,7 @@ DataServer::DataServer(const std::string &name):name_(name), buf(nullptr), finis
     std::string cmd = "mkdir -p " + name_;
     system(cmd.c_str());
     //创建心跳线程
-    std::thread heartbeatThread(&DataServer::sendHeartbeat);
+    std::thread heartbeatThread(&DataServer::sendHeartbeat,this,nameServer_);
     heartbeatThread.detach();
 }
 
