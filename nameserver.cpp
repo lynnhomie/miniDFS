@@ -3,9 +3,9 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <thread>
 #include "nameserver.h"
 #include "util.h"
-
 
 NameServer::NameServer(int numReplicate):numReplicate_(numReplicate), idCnt_(0){}
 
@@ -27,12 +27,15 @@ std::vector<std::string> NameServer::parse_cmd(){
 
 void NameServer::operator()(){
     while(true){
+    	std::thread heartbeatProcessing(&NameServer::heartbeatProcessing,this);
+    	heartbeatProcessing.detach();
         std::vector<std::string> parameters = parse_cmd();
         std::vector<int> idx;
         std::ifstream is;
         char *buf = nullptr;
         // md5 checksum for replicate chunks;
         MD5 md5;
+     
         if(parameters.empty()){
             std::cerr << "input a blank line" << std::endl;
             continue;
@@ -138,6 +141,12 @@ void NameServer::operator()(){
                 }
             }
         }
+        else if(parameters[0] == "heartbeat"){
+        	if (parameters.size() != 1){
+                std::cerr << "useage: " << "heartbeat" << std::endl;
+                continue;
+            }
+        }
         else
             std::cerr << "wrong command." << std::endl;
 
@@ -190,27 +199,37 @@ void NameServer::operator()(){
             if (notFound)
                 std::cout << "not found FileID " << parameters[1] << " offset " << parameters[2] << std::endl;
         }
+        else if(parameters[0] == "heartbeat"){
+        	for(int i=0;i<4;i++)
+        	{
+        		
+        		if(dataServers_[i]->heartbeatStatus[0])
+        		std::cout << "DataServer" << dataServers_[i]->get_name() << "is online" << std::endl;
+        		else
+        		std::cout << "DataServer" << dataServers_[i]->get_name() << " dropped" << std::endl;
+        		
+        		
+        	}
+        }
         delete []buf;
         is.close();
     }
 }
-//接收心跳信号
-void NameServer::receiveHeartbeat(const ServerID& serverID,bool status){
-    std::unique_lock<std::mutex> lock(mtx_);
-    heartbeatStatus_[serverID.getName()]=status;
+
+
+void NameServer::heartbeatProcessing(){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+	for(int i=0;i<4;i++){
+	if(dataServers_[i]->heartbeatStatus.count(0)==0){
+		dataServers_[i]->heartbeatStatus[0]=false;
+		//std::cout << "DataServer " << dataServers_[i]->get_name() << " dropped" << std::endl;
+	}else{
+		
+    		//std::cout << "DataServer " << dataServers_[i]->get_name() << " is online" << std::endl;
+	}
+	}		
+        std::this_thread::sleep_for(std::chrono::seconds(9));
 }
 
-//心跳处理函数，更新dataserver的心跳状态
-void NameServer::heartbeatProcessing(){
-    while(true){
-        std::unique_lock<std::mutex> lock(mtx_);
-        for(const auto& server : dataServers_){
-            std::string serverName=server->getName();
-            if(heartbeatStatus_.count(serverName)==0){
-                heartbeatStatus_[serverName]=false;
-            }
-        }
-        lock.unlock();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-}
+
+
