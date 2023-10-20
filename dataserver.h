@@ -4,11 +4,11 @@
 #include <string>
 #include <mutex>
 #include <condition_variable>
+#include <map>
 
 extern int chunkSize;
 
-class NameServer{
-};
+
 
 class DataServer{
 private:
@@ -19,19 +19,22 @@ private:
     void read();
     void locate();
     void fetch();
-    void sendHeartbeat();
 public:
+    
     std::mutex mtx;
     std::condition_variable cv;
-    std::string cmd;
+    std::string cmd="";
     int fid, bufSize, offset;
     char* buf;
     bool finish;
-
+ 
     DataServer(const std::string &name);
     void operator()();
     double size()const{return size_;}
     std::string get_name()const;
+    void sendHeartbeat();
+    std::map<int,bool>heartbeatStatus; //记录数据服务器与其心跳状态的对应关系
+   
 };
 
 #endif
