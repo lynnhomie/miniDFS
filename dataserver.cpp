@@ -4,22 +4,27 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <vector>
 #include "dataserver.h"
 
 
 
 int chunkSize = 2 * 1024 * 1024;
 
+
+
 DataServer::DataServer(const std::string &name):name_(name), buf(nullptr), finish(true){
     std::string cmd = "mkdir -p " + name_;
     system(cmd.c_str());
-    //创建心跳线程
-    std::thread heartbeatThread(&DataServer::sendHeartbeat,this,nameServer_);
-    heartbeatThread.detach();
+    
+    
+      
 }
 
 void DataServer::operator()(){
     while(true){
+        std::thread heartbeatThread(&DataServer::sendHeartbeat,this);
+        heartbeatThread.detach();
         std::unique_lock<std::mutex> lk(mtx);
         cv.wait(lk, [&](){return !this->finish;});
         if (cmd == "put"){
@@ -36,6 +41,7 @@ void DataServer::operator()(){
         lk.unlock();
         cv.notify_all();
     }
+    
 }
 
 
@@ -53,6 +59,8 @@ void DataServer::put(){
         os.close();
     }
 }
+
+
 
 
 void DataServer::read(){
@@ -89,6 +97,7 @@ void DataServer::fetch(){
 }
 
 
+
 void DataServer::locate(){
     std::string filePath = name_ + "/" + std::to_string(fid) + " " + std::to_string(offset);
     std::ifstream is(filePath);
@@ -98,16 +107,19 @@ void DataServer::locate(){
         bufSize = 0;
 }
 
-void DataServer::sendHeartbeat(NameServer* nameServer){
-    while(true){
-        //发送心跳信号给名称服务器
-        nameServer->receiveHeartbeat(ServerID(name_),true);
-        //每隔10秒发送一次心跳信号
-        std::this_thread::sleep_for(std::chrono::seconds(10));
-    }
-
-}
 
 std::string DataServer::get_name()const{
     return name_;
 }
+
+void DataServer::sendHeartbeat(){
+    while(true){
+       
+        heartbeatStatus[0]=true;
+    	std::this_thread::sleep_for(std::chrono::seconds(10));
+        
+      
+                }
+}
+
+
